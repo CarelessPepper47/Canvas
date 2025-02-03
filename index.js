@@ -10,7 +10,7 @@ const c = canvas.getContext('2d');
 // Responsywne ustawienie rozmiaru canvas
 function setCanvasSize() {
     const maxWidth = window.innerWidth;
-    let width = 800;
+    let width = 840;
     let height = 600;
 
     if (maxWidth < 800) {
@@ -25,6 +25,10 @@ function setCanvasSize() {
 const scaledCanvas = {
     width: canvas.width*2,
     height: canvas.height*2,
+}
+const scaledCanvasBackground = {
+    width: canvas.width/4,
+    height: canvas.height/4,
 }
 
 setCanvasSize();
@@ -136,7 +140,8 @@ const background = new Sprite({
         x: 0,
         y: 0,
     },
-    imageSrc: './img/exampleBase.png',
+    // imageSrc: './img/exampleBase.png',
+    imageSrc: './img/background.png',
 })
 
 // Funckja w której odgrywać się będzie całą gra
@@ -146,8 +151,8 @@ function animate() {
     c.fillRect(0, 0, canvas.width, canvas.height)
 
     c.save()
-    // c.scale(2, 2)
-    c.translate(0, -background.image.height + scaledCanvas.height*3)
+    c.scale(4, 4)
+    c.translate(0, -background.image.height + scaledCanvas.height/2 + 10)
     background.update()
     c.restore()
     player.update()
@@ -173,7 +178,7 @@ window.addEventListener('keydown', (event) => {
             keys.a.pressed = true
         break;
         case 'w': 
-        player.velocity.y = -20;
+        player.velocity.y = -10;
 
     }
 })

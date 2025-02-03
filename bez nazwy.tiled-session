@@ -1,0 +1,34 @@
+{
+    "Map/SizeTest": {
+        "height": 4300,
+        "width": 2
+    },
+    "activeFile": "gra.tsx",
+    "expandedProjectPaths": [
+        "."
+    ],
+    "file.lastUsedOpenFilter": "Wszystkie pliki (*)",
+    "fileStates": {
+        "gra.tsx": {
+            "scaleInDock": 0.25,
+            "scaleInEditor": 0.33
+        }
+    },
+    "last.imagePath": "C:/Users/mateu/OneDrive/Pulpit/Canvas/img",
+    "map.height": 25,
+    "map.tileHeight": 24,
+    "map.tileWidth": 24,
+    "map.width": 35,
+    "openFiles": [
+        "gra.tsx"
+    ],
+    "project": "bez nazwy.tiled-project",
+    "recentFiles": [
+        "gra.tsx"
+    ],
+    "tileset.lastUsedFormat": "tsx",
+    "tileset.tileSize": {
+        "height": 24,
+        "width": 24
+    }
+}
