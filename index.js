@@ -22,9 +22,10 @@ spriteSheet.src = "./img/character/idle.png";
 
 const animations = {
     idle: { src: "./img/character/idle.png", frames: 14 },
-    walkRight: { src: "./img/character/walk.png", frames: 14 },
-    walkLeft: { src: "./img/character/walk.png", frames: 14, flip: true },
-    attack: { src: "./img/character/heavy.png", frames: 20 }
+    walkRight: { src: "./img/character/walkRight.png", frames: 14 },
+    walkLeft: { src: "./img/character/walk.png", frames: 14 },
+    attackRight: { src: "./img/character/heavyRight.png", frames: 20 },
+    attackLeft: { src: "./img/character/heavy.png", frames: 20 }
 };
 
 const frameSize = 96;
@@ -73,12 +74,11 @@ function draw(time) {
 }
 
 function setAnimation(name) {
-    if (isAttacking && name !== "attack") return;
+    if (isAttacking && name !== "attackRight" && name !== "attackLeft") return;
     currentAnimation = animations[name];
     spriteSheet.src = currentAnimation.src;
     currentFrame = 0;
 }
-
 spriteSheet.onload = () => requestAnimationFrame(draw);
 
 const keys = {
@@ -104,7 +104,7 @@ window.addEventListener('keydown', (event) => {
         case 'h':
             if (!isAttacking) {
                 isAttacking = true;
-                setAnimation("attack");
+                setAnimation(lastDirection === "right" ? "attackRight" : "attackLeft");
             }
             break;
     }
