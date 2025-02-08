@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gra Canvas</title>
+    <style>
+        body {
+            background-color: black;
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+
+        canvas {
+            background-color: white;
+            max-width: 100%;
+            height: auto;
+            display: block;
+            margin-bottom: 20px;
+        }
+
+        @media (max-width: 800px) {
+            canvas {
+                width: 100%;
+                max-width: 320px;
+                height: auto;
+            }
+        }
+
+        .palette-container {
+            display: flex;
+            justify-content: center;
+            gap: 5px;
+            flex-wrap: wrap;
+            max-width: 360px;
+            margin-bottom: 20px;
+        }
+
+        .palette {
+            width: 30px;
+            height: 30px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .palette:nth-child(1) { background-color: #0F0F0F; }
+        .palette:nth-child(2) { background-color: #383838; }
+        .palette:nth-child(3) { background-color: #7A7A7A; }
+        .palette:nth-child(4) { background-color: #4A2F27; }
+        .palette:nth-child(5) { background-color: #703F2A; }
+        .palette:nth-child(6) { background-color: #9B5A3C; }
+        .palette:nth-child(7) { background-color: #3D4A34; }
+        .palette:nth-child(8) { background-color: #1D2A3A; }
+        .palette:nth-child(9) { background-color: #D6A661; }
+        .palette:nth-child(10) { background-color: #D93F2D; }
+        .palette:nth-child(11) { background-color: #FFD447; }
+        .palette:nth-child(12) { background-color: #C29C7E; }
+
+        .controls {
+            margin-top: 20px;
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .controls button {
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <canvas></canvas>
+
+    <div class="palette-container">
+        <div class="palette" data-color="#0F0F0F"></div>
+        <div class="palette" data-color="#383838"></div>
+        <div class="palette" data-color="#7A7A7A"></div>
+        <div class="palette" data-color="#4A2F27"></div>
+        <div class="palette" data-color="#703F2A"></div>
+        <div class="palette" data-color="#9B5A3C"></div>
+        <div class="palette" data-color="#3D4A34"></div>
+        <div class="palette" data-color="#1D2A3A"></div>
+        <div class="palette" data-color="#D6A661"></div>
+        <div class="palette" data-color="#D93F2D"></div>
+        <div class="palette" data-color="#FFD447"></div>
+        <div class="palette" data-color="#C29C7E"></div>
+    </div>
+
+    <div class="controls">
+        <button id="ButtonWalkLeft">Lewo (A)</button>
+        <button id="ButtonWalkRight">Prawo (D)</button>
+        <button id="ButtonJump">Skok (W)</button>
+        <button id="ButtonHeavy">Atak (H)</button>
+    </div>
+
+    <script src="indexx.js"></script>
+</body>
+</html>
