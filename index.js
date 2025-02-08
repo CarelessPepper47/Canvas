@@ -2,8 +2,8 @@ const canvas = document.querySelector('canvas');
 const c = canvas.getContext('2d');
 
 function resizeCanvas() {
-    canvas.width = 800;
-    canvas.height = 600;
+    canvas.width = 320;
+    canvas.height = 400;
 }
 
 window.addEventListener("resize", resizeCanvas);
@@ -15,7 +15,6 @@ spriteSheet.src = "./img/character/idle.png";
 
 const animations = {
     idle: { src: "./img/character/idle.png", frames: 14 },
-    idleRight: {src: ".img/character/idleRight.png", frames: 14},
     walkRight: { src: "./img/character/walkRight.png", frames: 14 },
     walkLeft: { src: "./img/character/walk.png", frames: 14 },
     attackRight: { src: "./img/character/heavyRight.png", frames: 20 },
@@ -32,6 +31,7 @@ let lastDirection = "right";
 let playerYVelocity = 0;
 const jumpStrength = -15;
 let isGrounded = false;
+let playerColor = "white";
 
 let playerXVelocity = 0;
 const moveSpeed = 2;
@@ -68,6 +68,7 @@ function draw(time) {
     if (playerPositionX > canvas.width - frameSize) playerPositionX = canvas.width - frameSize;
 
     c.clearRect(0, 0, canvas.width, canvas.height);
+    c.fillStyle = playerColor;
     if (currentAnimation.flip) {
         c.save();
         c.scale(-1, 1);
@@ -89,11 +90,11 @@ function draw(time) {
 }
 
 function setAnimation(name) {
-    if (isAttacking && name !== "attackRight" && name !== "attackLeft") return;
     currentAnimation = animations[name];
     spriteSheet.src = currentAnimation.src;
     currentFrame = 0;
 }
+
 spriteSheet.onload = () => requestAnimationFrame(draw);
 
 const keys = {
@@ -106,9 +107,59 @@ const keys = {
 let playerPositionX = (canvas.width - frameSize) / 2;
 let playerPositionY = canvas.height - frameSize;
 
-window.addEventListener('keydown', (event) => {
-    if (isAttacking) return;
+// Funkcje obsługi przycisków
+function walkLeftStart() {
+    keys.a.pressed = true;
+    lastDirection = "left";
+    setAnimation("walkLeft");
+    playerXVelocity = -moveSpeed;
+}
 
+function walkLeftEnd() {
+    keys.a.pressed = false;
+    playerXVelocity = 0;
+    setAnimation("idle");
+}
+
+function walkRightStart() {
+    keys.d.pressed = true;
+    lastDirection = "right";
+    setAnimation("walkRight");
+    playerXVelocity = moveSpeed;
+}
+
+function walkRightEnd() {
+    keys.d.pressed = false;
+    playerXVelocity = 0;
+    setAnimation("idle");
+}
+
+
+function jump() {
+    if (isGrounded) {
+        playerYVelocity = jumpStrength;
+        isGrounded = false;
+    }
+}
+
+function heavyAttack() {
+        isAttacking = true;
+        setAnimation(lastDirection === "right" ? "attackRight" : "attackLeft");
+}
+
+// Dodajemy Event Listenery dla przycisków - TOUCHSTART
+document.querySelector('#ButtonWalkLeft').addEventListener('touchstart', walkLeftStart);
+document.querySelector('#ButtonWalkLeft').addEventListener('touchend', walkLeftEnd);
+
+document.querySelector('#ButtonWalkRight').addEventListener('touchstart', walkRightStart);
+document.querySelector('#ButtonWalkRight').addEventListener('touchend', walkRightEnd);
+
+document.querySelector('#ButtonJump').addEventListener('touchstart', jump);
+document.querySelector('#ButtonHeavy').addEventListener('touchstart', heavyAttack);
+
+
+// Klawisze
+window.addEventListener('keydown', (event) => {
     switch (event.key) {
         case 'd':
             keys.d.pressed = true;
@@ -123,10 +174,8 @@ window.addEventListener('keydown', (event) => {
             playerXVelocity = -moveSpeed;
             break;
         case 'h':
-            if (!isAttacking) {
                 isAttacking = true;
                 setAnimation(lastDirection === "right" ? "attackRight" : "attackLeft");
-            }
             break;
         case 'w':
             if (isGrounded) {
@@ -138,18 +187,29 @@ window.addEventListener('keydown', (event) => {
 });
 
 window.addEventListener('keyup', (event) => {
-    if (isAttacking) return;
-
     switch (event.key) {
         case 'd':
             keys.d.pressed = false;
             playerXVelocity = 0;
-            setAnimation("idleRight");
+            setAnimation("idle");
             break;
         case 'a':
             keys.a.pressed = false;
             playerXVelocity = 0;
             setAnimation("idle");
             break;
+    }
+});
+
+// Pobranie kontenera palety
+const paletteContainer = document.querySelector('.palette-container');
+
+// Obsługa kliknięcia palety
+paletteContainer.addEventListener('click', (event) => {
+    const target = event.target;
+
+    if (target.classList.contains('palette')) {
+        const color = target.getAttribute('data-color');
+        playerColor = color; // Zmiana koloru gracza
     }
 });
