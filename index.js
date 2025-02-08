@@ -20,30 +20,63 @@ resizeCanvas();
 const spriteSheet = new Image();
 spriteSheet.src = "./img/character/idle.png";
 
+const animations = {
+    idle: { src: "./img/character/idle.png", frames: 14 },
+    walkRight: { src: "./img/character/walk.png", frames: 14 },
+    walkLeft: { src: "./img/character/walk.png", frames: 14, flip: true },
+    attack: { src: "./img/character/heavy.png", frames: 20 }
+};
+
 const frameSize = 96;
-const totalFrames = 14;
 let currentFrame = 0;
 let lastTime = 0;
 const frameDelay = 100;
+let isAttacking = false;
+let currentAnimation = animations.idle;
+let lastDirection = "right";
 
 function draw(time) {
     if (!lastTime) lastTime = time;
     const deltaTime = time - lastTime;
 
     if (deltaTime > frameDelay) {
-        currentFrame = (currentFrame + 1) % totalFrames;
+        currentFrame++;
+        if (currentFrame >= currentAnimation.frames) {
+            if (isAttacking) {
+                isAttacking = false;
+                setAnimation(lastDirection === "right" ? "idle" : "walkLeft");
+            }
+            currentFrame = 0;
+        }
         lastTime = time;
     }
 
     c.clearRect(0, 0, canvas.width, canvas.height);
-    const col = currentFrame;
-    c.drawImage(
-        spriteSheet,
-        col * frameSize, 0, frameSize, frameSize,
-        (canvas.width - frameSize) / 2, (canvas.height - frameSize) / 2, frameSize, frameSize
-    );
+    if (currentAnimation.flip) {
+        c.save();
+        c.scale(-1, 1);
+        c.drawImage(
+            spriteSheet,
+            currentFrame * frameSize, 0, frameSize, frameSize,
+            -(canvas.width - frameSize) / 2 - frameSize, (canvas.height - frameSize) / 2, frameSize, frameSize
+        );
+        c.restore();
+    } else {
+        c.drawImage(
+            spriteSheet,
+            currentFrame * frameSize, 0, frameSize, frameSize,
+            (canvas.width - frameSize) / 2, (canvas.height - frameSize) / 2, frameSize, frameSize
+        );
+    }
 
     requestAnimationFrame(draw);
+}
+
+function setAnimation(name) {
+    if (isAttacking && name !== "attack") return;
+    currentAnimation = animations[name];
+    spriteSheet.src = currentAnimation.src;
+    currentFrame = 0;
 }
 
 spriteSheet.onload = () => requestAnimationFrame(draw);
@@ -55,43 +88,43 @@ const keys = {
 };
 
 window.addEventListener('keydown', (event) => {
+    if (isAttacking) return;
+    
     switch (event.key) {
         case 'd':
             keys.d.pressed = true;
-            spriteSheet.src = "./img/character/walkRight.png";
-            totalFrames = 14;
+            lastDirection = "right";
+            setAnimation("walkRight");
             break;
         case 'a':
             keys.a.pressed = true;
-            spriteSheet.src = "./img/character/walk.png";
-            totalFrames = 14;
+            lastDirection = "left";
+            setAnimation("walkLeft");
             break;
         case 'h':
-            keys.h.pressed = true;
-            isAttacking = true;
-            spriteSheet.src = "./img/character/heavy.png";
-            totalFrames = 20;
-            setTimeout(() => {
-                isAttacking = false;
-                spriteSheet.src = "./img/character/idle.png";
-                totalFrames = 14;
-            }, 2000); // Czas trwania animacji (20 klatek * 100ms)
+            if (!isAttacking) {
+                isAttacking = true;
+                setAnimation("attack");
+            }
             break;
     }
 });
 
 window.addEventListener('keyup', (event) => {
+    if (isAttacking) return;
+    
     switch (event.key) {
         case 'd':
             keys.d.pressed = false;
-            spriteSheet.src = "./img/character/idleRight.png";
+            setAnimation(lastDirection === "right" ? "idle" : "walkLeft");
             break;
         case 'a':
             keys.a.pressed = false;
-            spriteSheet.src = "./img/character/idle.png";
+            setAnimation(lastDirection === "right" ? "idle" : "walkLeft");
             break;
     }
 });
+
 
 
 // // Responsywne ustawienie rozmiaru canvas
