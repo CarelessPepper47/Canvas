@@ -10,33 +10,25 @@ const c = canvas.getContext('2d');
 // Responsywne ustawienie rozmiaru canvas
 function setCanvasSize() {
     const maxWidth = window.innerWidth;
-    let width = 840;
-    let height = 600;
-
-    if (maxWidth < 800) {
-        width = Math.max(320, maxWidth);
-        height = width / (800/600);
-    }
+    let width = 1344;
+    let height = 912;
 
     canvas.width = width;
     canvas.height = height;
 }
 
 const scaledCanvas = {
-    width: canvas.width*2,
-    height: canvas.height*2,
+    width: canvas.width,
+    height: canvas.height,
 }
 const scaledCanvasBackground = {
-    width: canvas.width/4,
-    height: canvas.height/4,
+    width: canvas.width,
+    height: canvas.height,
 }
 
 setCanvasSize();
 window.addEventListener('resize', setCanvasSize);
 
-// // Wielkość okna gry
-// canvas.width = 800;
-// canvas.height = 600;
 
 // Grawitacja
 const gravity = 0.5
@@ -82,19 +74,13 @@ class Sprite {
 
     update() {
         this.draw()
+        this.updateFrames()
     }
-
+    
     updateFrames() {
-        this.elapsedFrames++
-
-        if (this.elapsedFrames % this.frameBuffer === 0) {
-            if (this.currentFrame < this.frameRate - 1) {
-                this.currentFrame++
-            } else if (this.loop) {
-                this.currentFrame = 0
-            }
-        }
+        this.currentFrame++
     }
+
 }
 
 
@@ -194,8 +180,8 @@ function animate() {
     c.fillRect(0, 0, canvas.width, canvas.height)
 
     c.save()
-    c.scale(4, 4)
-    c.translate(0, -background.image.height + scaledCanvas.height/2 + 10)
+    c.scale(2, 2)
+    c.translate(0, -background.image.height + scaledCanvas.height)
     background.update()
     c.restore()
     player.update()

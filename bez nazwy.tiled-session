@@ -1,34 +1,59 @@
 {
-    "Map/SizeTest": {
-        "height": 4300,
-        "width": 2
-    },
-    "activeFile": "gra.tsx",
+    "activeFile": "tiled/verticalPlatformer.tmx",
     "expandedProjectPaths": [
+        "tiled",
         "."
     ],
-    "file.lastUsedOpenFilter": "Wszystkie pliki (*)",
     "fileStates": {
+        "Like.tsx": {
+            "dynamicWrapping": false,
+            "scaleInDock": 1.5,
+            "scaleInEditor": 2
+        },
+        "Like2.tsx": {
+            "scaleInDock": 1,
+            "scaleInEditor": 2
+        },
+        "bruh.tsx": {
+            "scaleInDock": 1,
+            "scaleInEditor": 5.5
+        },
         "gra.tsx": {
             "scaleInDock": 0.25,
             "scaleInEditor": 0.33
+        },
+        "tiled/background.tsx": {
+            "dynamicWrapping": true,
+            "scaleInDock": 1,
+            "scaleInEditor": 1
+        },
+        "tiled/collision.tsx": {
+            "dynamicWrapping": false,
+            "scaleInDock": 1,
+            "scaleInEditor": 1
+        },
+        "tiled/springstar.tsx": {
+            "scaleInDock": 1
+        },
+        "tiled/verticalPlatformer.tmx": {
+            "scale": 0.9697916666666665,
+            "selectedLayer": 2,
+            "viewCenter": {
+                "x": 287.69065520945225,
+                "y": 216.02577873254572
+            }
         }
     },
-    "last.imagePath": "C:/Users/mateu/OneDrive/Pulpit/Canvas/img",
-    "map.height": 25,
-    "map.tileHeight": 24,
-    "map.tileWidth": 24,
-    "map.width": 35,
     "openFiles": [
-        "gra.tsx"
+        "tiled/verticalPlatformer.tmx"
     ],
-    "project": "bez nazwy.tiled-project",
     "recentFiles": [
-        "gra.tsx"
-    ],
-    "tileset.lastUsedFormat": "tsx",
-    "tileset.tileSize": {
-        "height": 24,
-        "width": 24
-    }
+        "tiled/verticalPlatformer.tmx",
+        "Like2.tsx",
+        "Like.tsx",
+        "gra.tsx",
+        "tiled/background.tsx",
+        "bruh.tsx",
+        "tiled/collision.tsx"
+    ]
 }
