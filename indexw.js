@@ -1,172 +1,280 @@
 const canvas = document.querySelector('canvas');
+
+// Zapobieganie domyślnej akcji przewijania przy dotyku
+document.addEventListener("touchmove", (e) => {
+    e.preventDefault();
+}, { passive: false });
+
 const c = canvas.getContext('2d');
 
-canvas.width = 800;
-canvas.height = 600;
+// Responsywne ustawienie rozmiaru canvas
+function setCanvasSize() {
+    const maxWidth = window.innerWidth;
+    let width = 800;
+    let height = 600;
+
+    if (maxWidth < 800) {
+        width = Math.max(320, maxWidth);
+        height = width / (800 / 600);
+    }
+
+    canvas.width = width;
+    canvas.height = height;
+}
+
+const scaledCanvas = {
+    width: canvas.width,
+    height: canvas.height,
+};
+
+setCanvasSize();
+window.addEventListener('resize', setCanvasSize);
 
 const gravity = 0.5;
 
-class Player {
-    constructor(position) {
-        this.position = position;
-        this.velocity = {
-            x: 0,
-            y: 0, // Zresetuj velocity y do 0
-        };
-        this.height = 100;
-        this.width = 100; // Dodaj szerokość gracza
-        this.isDragging = false; // Dodaj flagę dla drag and drop
-        this.offset = { x: 0, y: 0 }; // Offset podczas przeciągania
+// Klasa Sprite
+class Sprite {
+    constructor({ position, imageSrc, frameRate = 1, frameBuffer = 5, loop = true, scale = 1 }) {
+        this.position = position
+        this.scale = scale
+        this.image = new Image()
+        this.image.onload = () => {
+            this.width = (this.image.width / this.frameRate) * this.scale
+            this.height = this.image.height * this.scale
+        }
+        this.image.src = imageSrc
+        this.frameRate = frameRate
+        this.currentFrame = 0
+        this.frameBuffer = frameBuffer
+        this.elapsedFrames = 0
+        this.loop = loop
+        this.loaded = false
+        this.image.onload = () => {
+            this.loaded = true
+            this.width = (this.image.width / this.frameRate) * this.scale
+            this.height = this.image.height * this.scale
+        }
     }
 
     draw() {
-        c.fillStyle = 'red';
-        c.fillRect(this.position.x, this.position.y, this.width, this.height);
+        if (!this.loaded) return
+        const cropbox = {
+            position: {
+                x: this.currentFrame * (this.image.width / this.frameRate),
+                y: 0,
+            },
+            width: this.image.width / this.frameRate,
+            height: this.image.height,
+        }
+
+        c.drawImage(
+            this.image,
+            cropbox.position.x,
+            cropbox.position.y,
+            cropbox.width,
+            cropbox.height,
+            this.position.x,
+            this.position.y,
+            this.width,
+            this.height
+        )
+    }
+
+    updateFrames() {
+        this.elapsedFrames++
+
+        if (this.elapsedFrames % this.frameBuffer === 0) {
+            if (this.currentFrame < this.frameRate - 1) {
+                this.currentFrame++
+            } else if (this.loop) {
+                this.currentFrame = 0
+            }
+        }
     }
 
     update() {
-        this.draw();
-        if (!this.isDragging) { // Tylko jeśli nie przeciągamy
-            this.position.y += this.velocity.y;
-            this.position.x += this.velocity.x;
-
-           if (this.position.y + this.height + this.velocity.y < canvas.height) {
-                this.velocity.y += gravity;
-            } else {
-                this.velocity.y = 0;
-                this.position.y = canvas.height - this.height; // Poprawka, by nie wpadał pod podłogę
-            }
-        } else { // Ustaw prędkość na 0 podczas przeciągania
-            this.velocity.x = 0;
-            this.velocity.y = 0;
-        }
-
-        // Ograniczenie pozycji gracza wewnątrz canvasu
-        if (this.position.x < 0) {
-            this.position.x = 0;
-        }
-        if (this.position.x + this.width > canvas.width) {
-             this.position.x = canvas.width - this.width;
-         }
-         if (this.position.y < 0) {
-             this.position.y = 0
-         }
-          if (this.position.y + this.height > canvas.height && !this.isDragging) {
-           this.position.y = canvas.height - this.height
-         }
+        if (!this.loaded) return
+        this.draw()
+        this.updateFrames()
     }
 }
 
+// Klasa Player
+class Player extends Sprite {
+    constructor({ position, velocity, imageSrc, frameRate = 1, frameBuffer = 5, loop = true, animations, scale }) {
+        super({ position, imageSrc, frameRate, frameBuffer, loop, scale })
+        this.velocity = velocity
+        this.animations = animations
+        this.lastDirection = 'right'
+        this.attacking = false
+        this.currentAnimation = null
 
+        for (let key in this.animations) {
+            const imageSrc = this.animations[key].imageSrc
+            this.animations[key].image = new Image()
+            this.animations[key].image.src = imageSrc
+        }
+    }
+
+    switchSprite(key) {
+        if (this.image === this.animations[key].image || !this.loaded) return
+
+        this.currentFrame = 0
+        this.image = this.animations[key].image
+        this.frameRate = this.animations[key].frameRate
+        this.frameBuffer = this.animations[key].frameBuffer
+        this.currentAnimation = key
+    }
+
+    update() {
+        if (!this.loaded) return
+        this.draw()
+        this.updateFrames()
+        // animations
+        this.position.x += this.velocity.x
+        this.position.y += this.velocity.y
+
+        if (this.position.y + this.height + this.velocity.y < canvas.height) {
+            this.velocity.y += gravity
+        } else {
+            this.velocity.y = 0
+        }
+    }
+}
+
+// Tworzenie gracza
 const player = new Player({
-    x: 0,
-    y: 0,
+    position: {
+        x: 100,
+        y: 100,
+    },
+    velocity: {
+        x: 0,
+        y: 0,
+    },
+    imageSrc: './img/character/idle.png',
+    frameRate: 11,
+    animations: {
+        idleRight: {
+            imageSrc: './img/character/idle.png',
+            frameRate: 11,
+            frameBuffer: 5,
+        },
+        idleLeft: {
+            imageSrc: './img/character/walk.png',
+            frameRate: 11,
+            frameBuffer: 5,
+        },
+        runRight: {
+            imageSrc: './img/character/walk.png',
+            frameRate: 12,
+            frameBuffer: 5,
+        },
+        runLeft: {
+            imageSrc: './img/character/runLeft.png',
+            frameRate: 12,
+            frameBuffer: 5,
+        },
+        attackRight: {
+            imageSrc: './img/character/attackRight.png',
+            frameRate: 6,
+            frameBuffer: 5,
+        },
+        attackLeft: {
+            imageSrc: './img/character/attackLeft.png',
+            frameRate: 6,
+            frameBuffer: 5,
+        },
+    },
+    scale: 0.5,
 });
 
 const keys = {
-    d: {
-        pressed: false,
-    },
     a: {
-        pressed: false,
+        pressed: false
     },
-};
+    d: {
+        pressed: false
+    },
+    h: {
+        pressed: false
+    }
+}
 
+const background = new Sprite({
+    position: {
+        x: 0,
+        y: 0,
+    },
+    imageSrc: './img/background.png',
+    scale: 1,
+})
+
+// Funkcja animacji
 function animate() {
     window.requestAnimationFrame(animate);
     c.fillStyle = 'white';
     c.fillRect(0, 0, canvas.width, canvas.height);
 
+    background.update();
     player.update();
+    player.velocity.x = 0;
 
-     // Ruch za pomocą klawiszy
-     player.velocity.x = 0;
-     if (keys.d.pressed) {
-         player.velocity.x = 2;
-     }
-     if (keys.a.pressed) {
-         player.velocity.x = -2;
-     }
+    if (keys.d.pressed && !player.attacking) {
+        player.switchSprite('walk');
+        player.velocity.x = 5;
+        player.lastDirection = 'right';
+    } else if (keys.a.pressed && !player.attacking) {
+        player.switchSprite('walk');
+        player.velocity.x = -5;
+        player.lastDirection = 'left';
+    } else if (!player.attacking) {
+        player.switchSprite('idle');
+    }
+
+    if (keys.h.pressed && !player.attacking) {
+        player.attacking = true;
+        player.switchSprite('idle'); // Brak animacji ataku, zostaje idle
+    }
+
+    if (player.attacking && player.currentAnimation === 'idle') {
+        if (player.currentFrame === player.animations[player.currentAnimation].frameRate - 1) {
+            player.attacking = false;
+        }
+    }
 }
 
 animate();
-
 
 window.addEventListener('keydown', (event) => {
     switch (event.key) {
         case 'd':
             keys.d.pressed = true;
-        break;
+            break;
         case 'a':
-            keys.a.pressed = true;
-        break;
+            keys.a.pressed = true
+            break;
         case 'w':
-        if (!player.isDragging){
-            player.velocity.y = -10;
-        }
-        break;
-
+            if (player.velocity.y === 0) {
+                player.velocity.y = -15;
+            }
+            break;
+        case 'h':
+            keys.h.pressed = true;
+            break;
     }
-});
+})
 
 window.addEventListener('keyup', (event) => {
     switch (event.key) {
         case 'd':
             keys.d.pressed = false;
-        break;
+            break;
         case 'a':
             keys.a.pressed = false;
-        break;
+            break;
+        case 'h':
+            keys.h.pressed = false;
+            break;
     }
-});
-
-
-// Obsługa dotyku
-canvas.addEventListener('touchstart', (event) => {
-    const touch = event.touches[0];
-    const rect = canvas.getBoundingClientRect();
-    const touchX = touch.clientX - rect.left;
-    const touchY = touch.clientY - rect.top;
-
-     // Sprawdzenie czy dotykamy gracza
-    if (touchX >= player.position.x &&
-        touchX <= player.position.x + player.width &&
-        touchY >= player.position.y &&
-        touchY <= player.position.y + player.height) {
-
-        player.isDragging = true;
-         player.offset.x = touchX - player.position.x; // Oblicz offset
-        player.offset.y = touchY - player.position.y;
-    }
-});
-
-canvas.addEventListener('touchmove', (event) => {
-    if (player.isDragging) {
-        const touch = event.touches[0];
-        const rect = canvas.getBoundingClientRect();
-        const touchX = touch.clientX - rect.left;
-        const touchY = touch.clientY - rect.top;
-          // Ustaw pozycję gracza z uwzględnieniem offsetu
-        player.position.x = touchX - player.offset.x;
-         player.position.y = touchY - player.offset.y;
-
-         // Ograniczenie, aby gracz nie wychodził poza canvas
-         if (player.position.x < 0) {
-             player.position.x = 0
-          }
-          if (player.position.x + player.width > canvas.width) {
-              player.position.x = canvas.width - player.width
-          }
-          if(player.position.y < 0) {
-              player.position.y = 0
-          }
-         if(player.position.y + player.height > canvas.height) {
-             player.position.y = canvas.height - player.height
-         }
-    }
-});
-
-canvas.addEventListener('touchend', () => {
-    player.isDragging = false; // Przestań przeciągać, pozwól grawitacji działać
-    player.velocity.y = 0; // Wyzeruj prędkość pionową
-});
+})

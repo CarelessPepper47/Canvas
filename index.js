@@ -43,25 +43,66 @@ const gravity = 0.5
 
 // Dodawanie spritow
 class Sprite {
-    constructor({position, imageSrc}) {
+    constructor({position, imageSrc, frameRate = 1}) {
         this.position = position
         this.image = new Image()
+        this.image.onload = () => {
+            this.width = this.image.width / this.frameRate
+            this.height = this.image.height
+        }
         this.image.src = imageSrc
+        this.frameRate = frameRate
+        this.currentFrame = 0
     }
 
     draw() {
         if (!this.image) return
-        c.drawImage(this.image, this.position.x, this.position.y)
+
+        const cropbox = {
+            position: {
+                x: this.currentFrame * this.image.width/this.frameRate,
+                y:0,
+            },
+            width: this.image.width / this.frameRate,
+            height: this.image.height,
+        }
+
+        c.drawImage(
+            this.image, 
+            cropbox.position.x, 
+            cropbox.position.y, 
+            cropbox.width, 
+            cropbox.height, 
+            this.position.x, 
+            this.position.y,
+            this.width / this.frameRate,
+            this.height
+        )
     }
 
     update() {
         this.draw()
     }
+
+    updateFrames() {
+        this.elapsedFrames++
+
+        if (this.elapsedFrames % this.frameBuffer === 0) {
+            if (this.currentFrame < this.frameRate - 1) {
+                this.currentFrame++
+            } else if (this.loop) {
+                this.currentFrame = 0
+            }
+        }
+    }
 }
 
+
+
 // Tworzenie gracza i jego ruch
-class Player {
-    constructor(position) {
+class Player extends Sprite{
+    constructor({position, imageSrc, frameRate}) {
+        super({imageSrc, frameRate})
         this.position = position
         this.velocity = {
             x: 0,
@@ -69,18 +110,16 @@ class Player {
         }
 
         // Rozmiary gracza
-        this.height = 48
-	    this.width = 48
 	    this.isDragging = false; // Dodaj flagę dla drag and drop
         this.offset = { x: 0, y: 0 }; // Offset podczas przeciągania
         this.color = 'red';
         
     }
 
-    draw() {
-        c.fillStyle = this.color;
-        c.fillRect(this.position.x, this.position.y, this.width, this.height)
-    }
+    // draw() {
+    //     c.fillStyle = this.color;
+    //     c.fillRect(this.position.x, this.position.y, this.width, this.height)
+    // }
 
     update() {
         this.draw()
@@ -119,8 +158,12 @@ class Player {
 
 // Zmienna gracza i jego koordynaty
 const player = new Player({
+    position: { 
     x: 0,
     y: 0,
+}, imageSrc: './img/character/idle.png',
+    // frameRate: 14,
+    frameRate: 1,
 
 });
 
