@@ -9,12 +9,13 @@ function resizeCanvas() {
 window.addEventListener("resize", resizeCanvas);
 resizeCanvas();
 
-const gravity = 0.5; // Dodajemy grawitację
+const gravity = 0.5;
 const spriteSheet = new Image();
 spriteSheet.src = "./img/character/idle.png";
 
 const animations = {
     idle: { src: "./img/character/idle.png", frames: 14 },
+    idleRight: {src: ".img/character/idleRight.png", frames: 14},
     walkRight: { src: "./img/character/walkRight.png", frames: 14 },
     walkLeft: { src: "./img/character/walk.png", frames: 14 },
     attackRight: { src: "./img/character/heavyRight.png", frames: 20 },
@@ -28,9 +29,12 @@ const frameDelay = 100;
 let isAttacking = false;
 let currentAnimation = animations.idle;
 let lastDirection = "right";
-let playerYVelocity = 0; // Prędkość w osi Y
-const jumpStrength = -15;   // Siła skoku
-let isGrounded = false;    // Czy postać dotyka podłoża
+let playerYVelocity = 0;
+const jumpStrength = -15;
+let isGrounded = false;
+
+let playerXVelocity = 0;
+const moveSpeed = 2;
 
 function draw(time) {
     if (!lastTime) lastTime = time;
@@ -41,18 +45,17 @@ function draw(time) {
         if (currentFrame >= currentAnimation.frames) {
             if (isAttacking) {
                 isAttacking = false;
-                setAnimation(lastDirection === "right" ? "idle" : "walkLeft");
+                setAnimation("idle");
             }
             currentFrame = 0;
         }
         lastTime = time;
     }
 
-    // Aktualizacja pozycji gracza (grawitacja i skok)
     playerYVelocity += gravity;
     playerPositionY += playerYVelocity;
+    playerPositionX += playerXVelocity;
 
-    // Kolizja z podłożem
     if (playerPositionY > canvas.height - frameSize) {
         playerPositionY = canvas.height - frameSize;
         playerYVelocity = 0;
@@ -61,6 +64,9 @@ function draw(time) {
         isGrounded = false;
     }
 
+    if (playerPositionX < 0) playerPositionX = 0;
+    if (playerPositionX > canvas.width - frameSize) playerPositionX = canvas.width - frameSize;
+
     c.clearRect(0, 0, canvas.width, canvas.height);
     if (currentAnimation.flip) {
         c.save();
@@ -68,14 +74,14 @@ function draw(time) {
         c.drawImage(
             spriteSheet,
             currentFrame * frameSize, 0, frameSize, frameSize,
-            -(canvas.width + frameSize) / 2 - frameSize, playerPositionY, frameSize, frameSize
+            -(playerPositionX + frameSize), playerPositionY, frameSize, frameSize
         );
         c.restore();
     } else {
         c.drawImage(
             spriteSheet,
             currentFrame * frameSize, 0, frameSize, frameSize,
-            (canvas.width - frameSize) / 2, playerPositionY, frameSize, frameSize
+            playerPositionX, playerPositionY, frameSize, frameSize
         );
     }
 
@@ -94,11 +100,11 @@ const keys = {
     a: { pressed: false },
     d: { pressed: false },
     h: { pressed: false },
-    w: { pressed: false } // Dodajemy klawisz skoku
+    w: { pressed: false }
 };
 
-let playerPositionX = (canvas.width - frameSize) / 2; // Początkowa pozycja X
-let playerPositionY = canvas.height - frameSize;      // Początkowa pozycja Y
+let playerPositionX = (canvas.width - frameSize) / 2;
+let playerPositionY = canvas.height - frameSize;
 
 window.addEventListener('keydown', (event) => {
     if (isAttacking) return;
@@ -108,11 +114,13 @@ window.addEventListener('keydown', (event) => {
             keys.d.pressed = true;
             lastDirection = "right";
             setAnimation("walkRight");
+            playerXVelocity = moveSpeed;
             break;
         case 'a':
             keys.a.pressed = true;
             lastDirection = "left";
             setAnimation("walkLeft");
+            playerXVelocity = -moveSpeed;
             break;
         case 'h':
             if (!isAttacking) {
@@ -121,7 +129,7 @@ window.addEventListener('keydown', (event) => {
             }
             break;
         case 'w':
-            if (isGrounded) { // Sprawdzamy czy gracz dotyka podłoża przed skokiem
+            if (isGrounded) {
                 playerYVelocity = jumpStrength;
                 isGrounded = false;
             }
@@ -135,11 +143,13 @@ window.addEventListener('keyup', (event) => {
     switch (event.key) {
         case 'd':
             keys.d.pressed = false;
-            setAnimation(lastDirection === "right" ? "idle" : "walkLeft");
+            playerXVelocity = 0;
+            setAnimation("idleRight");
             break;
         case 'a':
             keys.a.pressed = false;
-            setAnimation(lastDirection === "right" ? "idle" : "walkLeft");
+            playerXVelocity = 0;
+            setAnimation("idle");
             break;
     }
 });

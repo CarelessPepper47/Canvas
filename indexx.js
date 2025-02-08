@@ -1,11 +1,3 @@
-// const canvas = document.querySelector('canvas');
-
-// document.addEventListener("touchmove", (e) => {
-//     e.preventDefault();
-// }, { passive: false }); 
-
-// // Łapanie API "2d"
-// const c = canvas.getContext('2d');
 
 const canvas = document.querySelector('canvas');
 const c = canvas.getContext('2d');
