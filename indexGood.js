@@ -19,7 +19,11 @@ const animations = {
     walkRight: { src: "./img/character/walkRight.png", frames: 14 },
     walkLeft: { src: "./img/character/walk.png", frames: 14 },
     attackRight: { src: "./img/character/heavyRight.png", frames: 20, adjustedFrameDelay: 1000 / 14 },
-    attackLeft: { src: "./img/character/heavy.png", frames: 20, adjustedFrameDelay: 1000 / 14 }
+    attackLeft: { src: "./img/character/heavy.png", frames: 20, adjustedFrameDelay: 1000 / 14 },
+    jump: { src: "./img/character/jump.png", frames: 10 }, // New jump animation
+    jumpRight: { src: "./img/character/jumpRight.png", frames: 10 }, // New jumpRight animation
+    run: { src: "./img/character/run.png", frames: 5 }, // New run animation
+    runRight: { src: "./img/character/runRight.png", frames: 5 } // New runRight animation
 };
 
 const frameSize = 96;
@@ -35,9 +39,9 @@ let isGrounded = false;
 let playerColor = "white";
 
 // Nowe zmienne do kontroli ruchu
-let playerXVelocity = 0; // Prędkość pozioma
-let acceleration = 0.2;  // Przyspieszenie ruchu
-let maxSpeed = 0.5;        // Maksymalna prędkość
+// let playerXVelocity = 0; // Prędkość pozioma
+// let acceleration = 0.25;  // Przyspieszenie ruchu
+// let maxSpeed = 1;        // Maksymalna prędkość
 
 function draw(time) {
     if (!lastTime) lastTime = time;
@@ -90,8 +94,13 @@ function setAnimation(name) {
     spriteSheet.src = currentAnimation.src;
     currentFrame = 0;
 
+    // Adjust frame delay if needed
     if (name === "attackRight" || name === "attackLeft") {
         frameDelay = currentAnimation.adjustedFrameDelay;
+    } else if (name === "jump" || name === "jumpRight") {
+        frameDelay = 1000 / 10; // Adjust frame rate for jump animations here
+    } else if (name === "run" || name === "runRight") {
+        frameDelay = 1000 / 10; // Adjust frame rate for run animations here
     } else {
         frameDelay = 1000 / 14;
     }
@@ -103,7 +112,8 @@ const keys = {
     a: { pressed: false },
     d: { pressed: false },
     h: { pressed: false },
-    w: { pressed: false }
+    w: { pressed: false },
+    Shift: { pressed: false }
 };
 
 let playerPositionX = (canvas.width - frameSize) / 2;
@@ -134,6 +144,16 @@ function jump() {
     if (isGrounded) {
         playerYVelocity = jumpStrength;
         isGrounded = false;
+        if (keys.a.pressed) {
+            playerXVelocity = -maxSpeed;
+            setAnimation("jump"); // Start jump animation
+        } else if (keys.d.pressed) {
+            playerXVelocity = maxSpeed;
+            setAnimation("jumpRight"); // Start jumpRight animation
+        } else {
+            playerXVelocity = 0;
+            setAnimation("jump"); // Start jump animation
+        }
     }
 }
 
@@ -173,18 +193,35 @@ window.addEventListener('keydown', (event) => {
         case 'd':
             keys.d.pressed = true;
             lastDirection = "right";
-            setAnimation("walkRight");
+            if (keys.Shift.pressed) {
+                setAnimation("runRight"); // Start runRight animation
+            } else {
+                setAnimation("walkRight");
+            }
             break;
         case 'a':
             keys.a.pressed = true;
             lastDirection = "left";
-            setAnimation("walkLeft");
+            if (keys.Shift.pressed) {
+                setAnimation("run"); // Start run animation
+            } else {
+                setAnimation("walkLeft");
+            }
             break;
         case 'h':
             heavyAttack();
             break;
         case 'w':
+            keys.w.pressed = true;
             jump();
+            break;
+        case 'Shift':
+            keys.Shift.pressed = true;
+            if (keys.d.pressed) {
+                setAnimation("runRight"); // Start runRight animation
+            } else if (keys.a.pressed) {
+                setAnimation("run"); // Start run animation
+            }
             break;
     }
 });
@@ -195,35 +232,63 @@ window.addEventListener('keyup', (event) => {
     switch (event.key) {
         case 'd':
             keys.d.pressed = false;
-            setAnimation(lastDirection === "right" ? "idle" : "walkLeft");
+            setAnimation(lastDirection === "right" ? "idleRight" : "walkRight");
             break;
         case 'a':
             keys.a.pressed = false;
-            setAnimation(lastDirection === "right" ? "idle" : "walkLeft");
+            setAnimation(lastDirection === "left" ? "idle" : "walkLeft");
+            break;
+        case 'w':
+            keys.w.pressed = false;
+            playerYVelocity -= playerYVelocity;
+            break;
+        case 'Shift':
+            keys.Shift.pressed = false;
+            if (keys.d.pressed) {
+                setAnimation("walkRight"); // Revert to walkRight animation
+            } else if (keys.a.pressed) {
+                setAnimation("walkLeft"); // Revert to walk animation
+            }
             break;
     }
 });
 
-// Nowa funkcja obsługująca ruch z przyspieszeniem
+// Stała prędkość poruszania się postaci
+const moveSpeed = 1;  // ← Możesz tu modyfikować prędkość ruchu
+
+// Usunięcie dynamicznego przyspieszania - teraz ruch jest stały
 function updateMovement() {
-    if (keys.a.pressed) {
-        playerXVelocity -= acceleration; // Przyspieszenie w lewo
-        if (playerXVelocity < -maxSpeed) playerXVelocity = -maxSpeed; // Ograniczenie prędkości
-    } else if (keys.d.pressed) {
-        playerXVelocity += acceleration; // Przyspieszenie w prawo
-        if (playerXVelocity > maxSpeed) playerXVelocity = maxSpeed; // Ograniczenie prędkości
+    if (keys.a.pressed && !isAttacking) {
+        playerXVelocity = -moveSpeed; // Ruch w lewo z ustaloną prędkością
+    } else if (keys.d.pressed && !isAttacking) {
+        playerXVelocity = moveSpeed;  // Ruch w prawo z ustaloną prędkością
     } else {
-        // Stopniowe zatrzymywanie
-        if (playerXVelocity > 0) {
-            playerXVelocity -= acceleration+0.1;
-            if (playerXVelocity < 0) playerXVelocity = 0;
-        } else if (playerXVelocity < 0) {
-            playerXVelocity += acceleration+0.1;
-            if (playerXVelocity > 0) playerXVelocity = 0;
-        }
+        playerXVelocity = 0; // Zatrzymanie postaci po puszczeniu klawisza
     }
 
     requestAnimationFrame(updateMovement);
 }
+
+// Nowa funkcja obsługująca ruch z przyspieszeniem
+// function updateMovement() {
+//     if (keys.a.pressed) {
+//         playerXVelocity -= acceleration; // Przyspieszenie w lewo
+//         if (playerXVelocity < -maxSpeed) playerXVelocity = -maxSpeed; // Ograniczenie prędkości
+//     } else if (keys.d.pressed) {
+//         playerXVelocity += acceleration; // Przyspieszenie w prawo
+//         if (playerXVelocity > maxSpeed) playerXVelocity = maxSpeed; // Ograniczenie prędkości
+//     } else {
+//         // Stopniowe zatrzymywanie
+//         if (playerXVelocity > 0) {
+//             playerXVelocity -= acceleration+0.1;
+//             if (playerXVelocity < 0) playerXVelocity = 0;
+//         } else if (playerXVelocity < 0) {
+//             playerXVelocity += acceleration+0.1;
+//             if (playerXVelocity > 0) playerXVelocity = 0;
+//         }
+//     }
+
+//     requestAnimationFrame(updateMovement);
+// }
 
 updateMovement(); // Uruchamiamy stałą aktualizację ruchu
