@@ -15,6 +15,7 @@ spriteSheet.src = "./img/character/idle.png";
 
 const animations = {
     idle: { src: "./img/character/idle.png", frames: 14 },
+    idleRight: { src: "./img/character/idleRight.png", frames: 14 },
     walkRight: { src: "./img/character/walkRight.png", frames: 14 },
     walkLeft: { src: "./img/character/walk.png", frames: 14 },
     attackRight: { src: "./img/character/heavyRight.png", frames: 20, adjustedFrameDelay: 1000 / 14 },
@@ -141,11 +142,32 @@ function heavyAttack() {
     if (!isAttacking) {
         isAttacking = true;
         setAnimation(lastDirection === "right" ? "attackRight" : "attackLeft");
+
+        // Unieruchomienie postaci w trakcie animacji ataku
+        let savedXPosition = playerPositionX;
+        playerXVelocity = 0; 
+
+        // Czas trwania animacji heavy = 20 klatek * 71 ms = 1420 ms
+        setTimeout(() => {
+            isAttacking = false;
+            setAnimation("idle");
+        }, 1420);
+
+        // Funkcja aktualizująca pozycję w trakcie ataku
+        function freezePosition() {
+            if (isAttacking) {
+                playerPositionX = savedXPosition;
+                requestAnimationFrame(freezePosition);
+            }
+        }
+        freezePosition();
     }
 }
 
-// Obsługa klawiatury
+// Zmodyfikowana obsługa klawiatury – blokada ruchu podczas ataku
 window.addEventListener('keydown', (event) => {
+    if (isAttacking) return; // Blokujemy inne akcje w trakcie ataku
+
     switch (event.key) {
         case 'd':
             keys.d.pressed = true;
@@ -166,7 +188,10 @@ window.addEventListener('keydown', (event) => {
     }
 });
 
+// Zmodyfikowana obsługa puszczania klawiszy
 window.addEventListener('keyup', (event) => {
+    if (isAttacking) return; // Blokujemy zmiany w trakcie ataku
+
     switch (event.key) {
         case 'd':
             keys.d.pressed = false;
@@ -188,10 +213,10 @@ function updateMovement() {
     } else {
         // Stopniowe zatrzymywanie
         if (playerXVelocity > 0) {
-            playerXVelocity -= acceleration;
+            playerXVelocity -= acceleration+0.1;
             if (playerXVelocity < 0) playerXVelocity = 0;
         } else if (playerXVelocity < 0) {
-            playerXVelocity += acceleration;
+            playerXVelocity += acceleration+0.1;
             if (playerXVelocity > 0) playerXVelocity = 0;
         }
     }
