@@ -3,7 +3,7 @@ const canvas = document.querySelector('canvas');
 const c = canvas.getContext('2d');
 
 function resizeCanvas() {
-    canvas.width = 1500;
+    canvas.width = 96*14;
     canvas.height = 600;
 }
 window.addEventListener("resize", resizeCanvas);
@@ -211,35 +211,35 @@ class Player extends Sprite{
         }
 
         // Rozmiary gracza
-	    this.isDragging = false; // Dodaj flagę dla drag and drop
-        this.offset = { x: 0, y: 0 }; // Offset podczas przeciągania
-        this.color = 'red';
+	    // this.isDragging = false; // Dodaj flagę dla drag and drop
+        // this.offset = { x: 0, y: 0 }; // Offset podczas przeciągania
+        // this.color = 'red';
         
     }
 
-    draw() {
-        c.fillStyle = this.color;
-        c.fillRect(this.position.x, this.position.y, this.width, this.height)
-    }
+    // draw() {
+    //     c.fillStyle = this.color;
+    //     c.fillRect(this.position.x, this.position.y, this.width, this.height)
+    // }
 
     update() {
         this.draw()
 
         // Grawitacja jesli nie przeciagamy
-	    if (!this.isDragging) { // Tylko jeśli nie przeciągamy
-            this.position.y += this.velocity.y;
-            this.position.x += this.velocity.x;
+	    // if (!this.isDragging) { // Tylko jeśli nie przeciągamy
+        //     this.position.y += this.velocity.y;
+        //     this.position.x += this.velocity.x;
         
-        if (this.position.y + this.height + this.velocity.y < canvas.height) {
-            this.velocity.y += gravity;
-        } else {
-            // Stop spadania
-            this.velocity.y = 0;
-        }
-        } else {
-            this.velocity.x = 0;
-            this.velocity.y = 0;
-        }
+        // if (this.position.y + this.height + this.velocity.y < canvas.height) {
+        //     this.velocity.y += gravity;
+        // } else {
+        //     // Stop spadania
+        //     this.velocity.y = 0;
+        // }
+        // } else {
+        //     this.velocity.x = 0;
+        //     this.velocity.y = 0;
+        // }
 
     // Ograniczenie pozycji gracza wewnątrz canvasu
         if (this.position.x < 0) {
@@ -260,24 +260,22 @@ class Player extends Sprite{
 // Zmienna gracza i jego koordynaty
 const player = new Player({
     position: { 
-    x: 0,
-    y: 0,
-}, imageSrc: './img/character/idleRight.png',
-    frameRate: 14,
+    x: 100,
+    y: 100,
+}, imageSrc: './img/character/idle.png',
+    frameRate: 1,
     // frameRate: 1,
 
 });
 
-let y = 100;
+// let y = 100;
 
 const keys = {
-    d: {
-        pressed: false,
-    },
-    a: {
-        pressed: false,
-    },
-}
+    a: { pressed: false },
+    d: { pressed: false },
+    h: { pressed: false },
+    w: { pressed: false }
+};
 
 const background = new Sprite({
     position: {
@@ -295,7 +293,7 @@ function animate() {
     c.fillRect(0, 0, canvas.width, canvas.height)
 
     c.save()
-    c.scale(2, 2)
+    c.scale(4, 4)
     c.translate(0, -background.image.height + scaledCanvas.height)
     background.update()
     c.restore()
@@ -326,6 +324,18 @@ window.addEventListener('keydown', (event) => {
 
     }
 })
+//         case 'd':
+//             keys.d.pressed = true;
+//             lastDirection = "right";
+//             setAnimation("walkRight");
+//             playerXVelocity = moveSpeed;
+//             break;
+//         case 'a':
+//             keys.a.pressed = true;
+//             lastDirection = "left";
+//             setAnimation("walkLeft");
+//             playerXVelocity = -moveSpeed;
+//             break;
 
 // Reakcja na wypuszczenie przycisku
 window.addEventListener('keyup', (event) => {

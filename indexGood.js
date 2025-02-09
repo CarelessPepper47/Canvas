@@ -17,24 +17,26 @@ const animations = {
     idle: { src: "./img/character/idle.png", frames: 14 },
     walkRight: { src: "./img/character/walkRight.png", frames: 14 },
     walkLeft: { src: "./img/character/walk.png", frames: 14 },
-    attackRight: { src: "./img/character/heavyRight.png", frames: 20 },
-    attackLeft: { src: "./img/character/heavy.png", frames: 20 }
+    attackRight: { src: "./img/character/heavyRight.png", frames: 20, adjustedFrameDelay: 1000 / 14 },
+    attackLeft: { src: "./img/character/heavy.png", frames: 20, adjustedFrameDelay: 1000 / 14 }
 };
 
 const frameSize = 96;
 let currentFrame = 0;
 let lastTime = 0;
-const frameDelay = 100;
+let frameDelay = 1000 / 14;
 let isAttacking = false;
 let currentAnimation = animations.idle;
 let lastDirection = "right";
 let playerYVelocity = 0;
-const jumpStrength = -15;
+const jumpStrength = -10;
 let isGrounded = false;
 let playerColor = "white";
 
-let playerXVelocity = 0;
-const moveSpeed = 2;
+// Nowe zmienne do kontroli ruchu
+let playerXVelocity = 0; // Prędkość pozioma
+let acceleration = 0.2;  // Przyspieszenie ruchu
+let maxSpeed = 0.5;        // Maksymalna prędkość
 
 function draw(time) {
     if (!lastTime) lastTime = time;
@@ -54,8 +56,11 @@ function draw(time) {
 
     playerYVelocity += gravity;
     playerPositionY += playerYVelocity;
+    
+    // Aktualizacja pozycji poziomej
     playerPositionX += playerXVelocity;
 
+    // Ograniczenie pozycji gracza w obrębie ekranu
     if (playerPositionY > canvas.height - frameSize) {
         playerPositionY = canvas.height - frameSize;
         playerYVelocity = 0;
@@ -67,24 +72,14 @@ function draw(time) {
     if (playerPositionX < 0) playerPositionX = 0;
     if (playerPositionX > canvas.width - frameSize) playerPositionX = canvas.width - frameSize;
 
+    // Renderowanie postaci
     c.clearRect(0, 0, canvas.width, canvas.height);
     c.fillStyle = playerColor;
-    if (currentAnimation.flip) {
-        c.save();
-        c.scale(-1, 1);
-        c.drawImage(
-            spriteSheet,
-            currentFrame * frameSize, 0, frameSize, frameSize,
-            -(playerPositionX + frameSize), playerPositionY, frameSize, frameSize
-        );
-        c.restore();
-    } else {
-        c.drawImage(
-            spriteSheet,
-            currentFrame * frameSize, 0, frameSize, frameSize,
-            playerPositionX, playerPositionY, frameSize, frameSize
-        );
-    }
+    c.drawImage(
+        spriteSheet,
+        currentFrame * frameSize, 0, frameSize, frameSize,
+        playerPositionX, playerPositionY, frameSize, frameSize
+    );
 
     requestAnimationFrame(draw);
 }
@@ -93,6 +88,12 @@ function setAnimation(name) {
     currentAnimation = animations[name];
     spriteSheet.src = currentAnimation.src;
     currentFrame = 0;
+
+    if (name === "attackRight" || name === "attackLeft") {
+        frameDelay = currentAnimation.adjustedFrameDelay;
+    } else {
+        frameDelay = 1000 / 14;
+    }
 }
 
 spriteSheet.onload = () => requestAnimationFrame(draw);
@@ -107,33 +108,26 @@ const keys = {
 let playerPositionX = (canvas.width - frameSize) / 2;
 let playerPositionY = canvas.height - frameSize;
 
-// Funkcje obsługi przycisków
+// Funkcje obsługi ruchu
 function walkLeftStart() {
     keys.a.pressed = true;
     lastDirection = "left";
     setAnimation("walkLeft");
-    playerXVelocity = -moveSpeed;
 }
 
 function walkLeftEnd() {
     keys.a.pressed = false;
-    playerXVelocity = 0;
-    setAnimation("idle");
 }
 
 function walkRightStart() {
     keys.d.pressed = true;
     lastDirection = "right";
     setAnimation("walkRight");
-    playerXVelocity = moveSpeed;
 }
 
 function walkRightEnd() {
     keys.d.pressed = false;
-    playerXVelocity = 0;
-    setAnimation("idle");
 }
-
 
 function jump() {
     if (isGrounded) {
@@ -142,46 +136,32 @@ function jump() {
     }
 }
 
+// Obsługa ataku
 function heavyAttack() {
+    if (!isAttacking) {
         isAttacking = true;
         setAnimation(lastDirection === "right" ? "attackRight" : "attackLeft");
+    }
 }
 
-// Dodajemy Event Listenery dla przycisków - TOUCHSTART
-document.querySelector('#ButtonWalkLeft').addEventListener('touchstart', walkLeftStart);
-document.querySelector('#ButtonWalkLeft').addEventListener('touchend', walkLeftEnd);
-
-document.querySelector('#ButtonWalkRight').addEventListener('touchstart', walkRightStart);
-document.querySelector('#ButtonWalkRight').addEventListener('touchend', walkRightEnd);
-
-document.querySelector('#ButtonJump').addEventListener('touchstart', jump);
-document.querySelector('#ButtonHeavy').addEventListener('touchstart', heavyAttack);
-
-
-// Klawisze
+// Obsługa klawiatury
 window.addEventListener('keydown', (event) => {
     switch (event.key) {
         case 'd':
             keys.d.pressed = true;
             lastDirection = "right";
             setAnimation("walkRight");
-            playerXVelocity = moveSpeed;
             break;
         case 'a':
             keys.a.pressed = true;
             lastDirection = "left";
             setAnimation("walkLeft");
-            playerXVelocity = -moveSpeed;
             break;
         case 'h':
-                isAttacking = true;
-                setAnimation(lastDirection === "right" ? "attackRight" : "attackLeft");
+            heavyAttack();
             break;
         case 'w':
-            if (isGrounded) {
-                playerYVelocity = jumpStrength;
-                isGrounded = false;
-            }
+            jump();
             break;
     }
 });
@@ -190,26 +170,33 @@ window.addEventListener('keyup', (event) => {
     switch (event.key) {
         case 'd':
             keys.d.pressed = false;
-            playerXVelocity = 0;
-            setAnimation("idle");
             break;
         case 'a':
             keys.a.pressed = false;
-            playerXVelocity = 0;
-            setAnimation("idle");
             break;
     }
 });
 
-// Pobranie kontenera palety
-const paletteContainer = document.querySelector('.palette-container');
-
-// Obsługa kliknięcia palety
-paletteContainer.addEventListener('click', (event) => {
-    const target = event.target;
-
-    if (target.classList.contains('palette')) {
-        const color = target.getAttribute('data-color');
-        playerColor = color; // Zmiana koloru gracza
+// Nowa funkcja obsługująca ruch z przyspieszeniem
+function updateMovement() {
+    if (keys.a.pressed) {
+        playerXVelocity -= acceleration; // Przyspieszenie w lewo
+        if (playerXVelocity < -maxSpeed) playerXVelocity = -maxSpeed; // Ograniczenie prędkości
+    } else if (keys.d.pressed) {
+        playerXVelocity += acceleration; // Przyspieszenie w prawo
+        if (playerXVelocity > maxSpeed) playerXVelocity = maxSpeed; // Ograniczenie prędkości
+    } else {
+        // Stopniowe zatrzymywanie
+        if (playerXVelocity > 0) {
+            playerXVelocity -= acceleration;
+            if (playerXVelocity < 0) playerXVelocity = 0;
+        } else if (playerXVelocity < 0) {
+            playerXVelocity += acceleration;
+            if (playerXVelocity > 0) playerXVelocity = 0;
+        }
     }
-});
+
+    requestAnimationFrame(updateMovement);
+}
+
+updateMovement(); // Uruchamiamy stałą aktualizację ruchu
