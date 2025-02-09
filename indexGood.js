@@ -32,11 +32,12 @@ let lastTime = 0;
 let frameDelay = 1000 / 14;
 let isAttacking = false;
 let currentAnimation = animations.idle;
-let lastDirection = "right";
+let lastDirection = "left";
 let playerYVelocity = 0;
 const jumpStrength = -10;
 let isGrounded = false;
 let playerColor = "white";
+let lastKeyPressTime = Date.now(); // Track the last key press time
 
 // Nowe zmienne do kontroli ruchu
 let playerXVelocity = 0; // Prędkość pozioma
@@ -99,7 +100,7 @@ function setAnimation(name) {
     } else if (name === "jump" || name === "jumpRight") {
         frameDelay = 1000 / 10; // Adjust frame rate for jump animations here
     } else if (name === "run" || name === "runRight") {
-        frameDelay = 1000 / 10; // Adjust frame rate for run animations here
+        frameDelay = 1000 / 14; // Adjust frame rate for run animations here
     } else {
         frameDelay = 1000 / 14;
     }
@@ -190,6 +191,8 @@ setAnimation(idleAnimation);
 window.addEventListener('keydown', (event) => {
     if (isAttacking) return; // Blokujemy inne akcje w trakcie ataku
 
+    lastKeyPressTime = Date.now(); // Update the last key press time
+
     switch (event.key) {
         case 'd':
             keys.d.pressed = true;
@@ -269,5 +272,12 @@ function updateMovement() {
 
     requestAnimationFrame(updateMovement);
 }
+
+// Check for idle state every second
+setInterval(() => {
+    if (Date.now() - lastKeyPressTime > 2000) { // 2 seconds of inactivity
+        setAnimation(lastDirection === "right" ? "idleRight" : "idle");
+    }
+}, 1000);
 
 updateMovement(); // Uruchamiamy stałą aktualizację ruchu
