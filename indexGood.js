@@ -2,8 +2,8 @@ const canvas = document.querySelector('canvas');
 const c = canvas.getContext('2d');
 
 function resizeCanvas() {
-    canvas.width = 320;
-    canvas.height = 400;
+    canvas.width = 800; // Set the width to 800
+    canvas.height = 600; // Set the height to 600
 }
 
 window.addEventListener("resize", resizeCanvas);
@@ -26,7 +26,7 @@ const animations = {
     runRight: { src: "./img/character/runRight.png", frames: 5 } // New runRight animation
 };
 
-const frameSize = 96;
+const frameSize = 96; // Keep the frame size unchanged
 let currentFrame = 0;
 let lastTime = 0;
 let frameDelay = 1000 / 14;
@@ -39,9 +39,8 @@ let isGrounded = false;
 let playerColor = "white";
 
 // Nowe zmienne do kontroli ruchu
-// let playerXVelocity = 0; // Prędkość pozioma
-// let acceleration = 0.25;  // Przyspieszenie ruchu
-// let maxSpeed = 1;        // Maksymalna prędkość
+let playerXVelocity = 0; // Prędkość pozioma
+const maxSpeed = 1; // Maksymalna prędkość
 
 function draw(time) {
     if (!lastTime) lastTime = time;
@@ -128,6 +127,7 @@ function walkLeftStart() {
 
 function walkLeftEnd() {
     keys.a.pressed = false;
+    setAnimation(lastDirection === "left" ? "idle" : "walkLeft");
 }
 
 function walkRightStart() {
@@ -138,6 +138,7 @@ function walkRightStart() {
 
 function walkRightEnd() {
     keys.d.pressed = false;
+    setAnimation(lastDirection === "right" ? "idleRight" : "walkRight");
 }
 
 function jump() {
@@ -259,36 +260,14 @@ const moveSpeed = 1;  // ← Możesz tu modyfikować prędkość ruchu
 // Usunięcie dynamicznego przyspieszania - teraz ruch jest stały
 function updateMovement() {
     if (keys.a.pressed && !isAttacking) {
-        playerXVelocity = -moveSpeed; // Ruch w lewo z ustaloną prędkością
+        playerXVelocity = keys.Shift.pressed ? -moveSpeed * 2 : -moveSpeed; // Ruch w lewo z ustaloną prędkością
     } else if (keys.d.pressed && !isAttacking) {
-        playerXVelocity = moveSpeed;  // Ruch w prawo z ustaloną prędkością
+        playerXVelocity = keys.Shift.pressed ? moveSpeed * 2 : moveSpeed;  // Ruch w prawo z ustaloną prędkością
     } else {
         playerXVelocity = 0; // Zatrzymanie postaci po puszczeniu klawisza
     }
 
     requestAnimationFrame(updateMovement);
 }
-
-// Nowa funkcja obsługująca ruch z przyspieszeniem
-// function updateMovement() {
-//     if (keys.a.pressed) {
-//         playerXVelocity -= acceleration; // Przyspieszenie w lewo
-//         if (playerXVelocity < -maxSpeed) playerXVelocity = -maxSpeed; // Ograniczenie prędkości
-//     } else if (keys.d.pressed) {
-//         playerXVelocity += acceleration; // Przyspieszenie w prawo
-//         if (playerXVelocity > maxSpeed) playerXVelocity = maxSpeed; // Ograniczenie prędkości
-//     } else {
-//         // Stopniowe zatrzymywanie
-//         if (playerXVelocity > 0) {
-//             playerXVelocity -= acceleration+0.1;
-//             if (playerXVelocity < 0) playerXVelocity = 0;
-//         } else if (playerXVelocity < 0) {
-//             playerXVelocity += acceleration+0.1;
-//             if (playerXVelocity > 0) playerXVelocity = 0;
-//         }
-//     }
-
-//     requestAnimationFrame(updateMovement);
-// }
 
 updateMovement(); // Uruchamiamy stałą aktualizację ruchu
