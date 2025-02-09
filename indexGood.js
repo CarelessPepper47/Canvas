@@ -86,6 +86,11 @@ function draw(time) {
         playerPositionX, playerPositionY, frameSize, frameSize
     );
 
+    // Draw instructions
+    c.fillStyle = "black";
+    c.font = "20px Arial";
+    c.fillText("To play press A (A+Shift), D (D+Shift), H", 10, 30);
+
     requestAnimationFrame(draw);
 }
 
@@ -195,36 +200,44 @@ window.addEventListener('keydown', (event) => {
 
     switch (event.key) {
         case 'd':
-            keys.d.pressed = true;
-            lastDirection = "right";
-            if (keys.Shift.pressed) {
-                setAnimation("runRight"); // Start runRight animation
-            } else {
-                setAnimation("walkRight");
+            if (!keys.d.pressed) {
+                keys.d.pressed = true;
+                lastDirection = "right";
+                if (keys.Shift.pressed) {
+                    setAnimation("runRight"); // Start runRight animation
+                } else {
+                    setAnimation("walkRight");
+                }
             }
             break;
         case 'a':
-            keys.a.pressed = true;
-            lastDirection = "left";
-            if (keys.Shift.pressed) {
-                setAnimation("run"); // Start run animation
-            } else {
-                setAnimation("walkLeft");
+            if (!keys.a.pressed) {
+                keys.a.pressed = true;
+                lastDirection = "left";
+                if (keys.Shift.pressed) {
+                    setAnimation("run"); // Start run animation
+                } else {
+                    setAnimation("walkLeft");
+                }
             }
             break;
         case 'h':
             heavyAttack();
             break;
         case 'w':
-            keys.w.pressed = true;
-            jump();
+            if (!keys.w.pressed) {
+                keys.w.pressed = true;
+                jump();
+            }
             break;
         case 'Shift':
-            keys.Shift.pressed = true;
-            if (keys.d.pressed) {
-                setAnimation("runRight"); // Start runRight animation
-            } else if (keys.a.pressed) {
-                setAnimation("run"); // Start run animation
+            if (!keys.Shift.pressed) {
+                keys.Shift.pressed = true;
+                if (keys.d.pressed) {
+                    setAnimation("runRight"); // Start runRight animation
+                } else if (keys.a.pressed) {
+                    setAnimation("run"); // Start run animation
+                }
             }
             break;
     }
@@ -244,7 +257,7 @@ window.addEventListener('keyup', (event) => {
             break;
         case 'w':
             keys.w.pressed = false;
-            playerYVelocity -= playerYVelocity;
+            playerYVelocity = 0;
             break;
         case 'Shift':
             keys.Shift.pressed = false;
