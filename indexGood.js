@@ -150,7 +150,8 @@ function heavyAttack() {
         // Czas trwania animacji heavy = 20 klatek * 71 ms = 1420 ms
         setTimeout(() => {
             isAttacking = false;
-            setAnimation("idle");
+            const idleAnimation = lastDirection === "right" ? "idleRight" : "idle";
+setAnimation(idleAnimation);
         }, 1420);
 
         // Funkcja aktualizująca pozycję w trakcie ataku
@@ -188,16 +189,17 @@ window.addEventListener('keydown', (event) => {
     }
 });
 
-// Zmodyfikowana obsługa puszczania klawiszy
 window.addEventListener('keyup', (event) => {
-    if (isAttacking) return; // Blokujemy zmiany w trakcie ataku
-
+    if (isAttacking) return;
+    
     switch (event.key) {
         case 'd':
             keys.d.pressed = false;
+            setAnimation(lastDirection === "right" ? "idle" : "walkLeft");
             break;
         case 'a':
             keys.a.pressed = false;
+            setAnimation(lastDirection === "right" ? "idle" : "walkLeft");
             break;
     }
 });
